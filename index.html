@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Is tanken in België goedkoper?</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+    crossorigin="anonymous"
+  >
+  <style>
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top right, rgba(13, 110, 253, 0.12), transparent 28%),
+        linear-gradient(180deg, #f8fbff 0%, #eef3f8 100%);
+    }
+
+    .app-shell {
+      max-width: 1140px;
+    }
+
+    .card {
+      border: 0;
+      box-shadow: 0 0.75rem 2rem rgba(33, 37, 41, 0.08);
+    }
+
+    .result-tile {
+      border: 1px solid rgba(33, 37, 41, 0.08);
+      border-radius: 0.75rem;
+      background: #fff;
+      height: 100%;
+      padding: 1rem;
+    }
+
+    .result-label {
+      color: #6c757d;
+      font-size: 0.9rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .result-value {
+      font-size: 1.35rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .result-note {
+      color: #6c757d;
+      font-size: 0.85rem;
+      margin-top: 0.35rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="container py-5 app-shell">
+    <div class="row justify-content-center mb-4">
+      <div class="col-lg-10 text-center">
+        <h1 class="display-6 fw-bold mb-3">Is tanken in België goedkoper?</h1>
+        <p class="lead text-secondary mb-0">
+          Vergelijk pompprijzen, ritkosten en netto voordeel in één berekening.
+        </p>
+      </div>
+    </div>
+
+    <noscript>
+      <div class="alert alert-danger" role="alert">
+        JavaScript is nodig om deze tool te gebruiken.
+      </div>
+    </noscript>
+
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <section class="card h-100">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <h2 class="h4 mb-1">Invoer</h2>
+                <p class="text-secondary mb-0">Vul je gegevens in of probeer actuele prijzen op te halen.</p>
+              </div>
+            </div>
+
+            <div id="formAlert" class="d-none" data-base-class="" aria-live="polite"></div>
+
+            <form id="fuelForm" novalidate>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="nlPrice" class="form-label">Nederlandse benzineprijs per liter</label>
+                  <div class="input-group">
+                    <span class="input-group-text">€</span>
+                    <input type="number" class="form-control" id="nlPrice" min="0" step="0.01" placeholder="2,15" required>
+                  </div>
+                  <div class="invalid-feedback">Vul een geldige Nederlandse prijs in.</div>
+                </div>
+
+                <div class="col-md-6">
+                  <label for="bePrice" class="form-label">Belgische benzineprijs per liter</label>
+                  <div class="input-group">
+                    <span class="input-group-text">€</span>
+                    <input type="number" class="form-control" id="bePrice" min="0" step="0.01" placeholder="1,68" required>
+                  </div>
+                  <div class="invalid-feedback">Vul een geldige Belgische prijs in.</div>
+                </div>
+
+                <div class="col-md-6">
+                  <label for="consumption" class="form-label">Verbruik van de auto</label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" id="consumption" min="0" step="0.1" placeholder="6,0" required>
+                    <span class="input-group-text">L/100 km</span>
+                  </div>
+                  <div class="invalid-feedback">Vul een geldig verbruik in.</div>
+                </div>
+
+                <div class="col-md-6">
+                  <label for="distance" class="form-label">Afstand naar de Belgische pomp</label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" id="distance" min="0" step="0.1" placeholder="45" required>
+                    <span class="input-group-text">km</span>
+                  </div>
+                  <div class="invalid-feedback">Vul een geldige afstand in.</div>
+                </div>
+
+                <div class="col-md-6">
+                  <label for="tripType" class="form-label">Afstandstype</label>
+                  <select class="form-select" id="tripType" required>
+                    <option value="single">Enkele reis (heen en terug rekenen)</option>
+                    <option value="return">Retour (afstand is al totaal)</option>
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label for="liters" class="form-label">Aantal liters dat getankt moet worden</label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" id="liters" min="0" step="0.1" placeholder="35" required>
+                    <span class="input-group-text">liter</span>
+                  </div>
+                  <div class="invalid-feedback">Vul een geldig aantal liters in.</div>
+                </div>
+              </div>
+
+              <div class="border rounded-3 p-3 mt-4 bg-light-subtle">
+                <div class="form-check form-switch mb-3">
+                  <input class="form-check-input" type="checkbox" role="switch" id="useApiPrices">
+                  <label class="form-check-label fw-semibold" for="useApiPrices">
+                    Gebruik actuele prijzen uit publieke API
+                  </label>
+                </div>
+
+                <div class="d-grid d-sm-flex gap-2">
+                  <button type="button" class="btn btn-outline-primary" id="fetchPricesBtn" disabled>
+                    Haal actuele prijzen op
+                  </button>
+                </div>
+
+                <div id="apiAlert" class="mt-3 d-none" data-base-class="mt-3" aria-live="polite"></div>
+              </div>
+
+              <div class="d-grid d-md-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary btn-lg flex-fill">Bereken</button>
+                <button type="button" class="btn btn-outline-secondary btn-lg flex-fill" id="exampleBtn">
+                  Vul voorbeeldwaarden
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </div>
+
+      <div class="col-lg-6">
+        <section class="card h-100">
+          <div class="card-body p-4">
+            <h2 class="h4 mb-1">Resultaten</h2>
+            <p class="text-secondary mb-4">De uitkomst wordt direct bijgewerkt na een berekening.</p>
+
+            <div class="row g-3">
+              <div class="col-sm-6">
+                <div class="result-tile">
+                  <div class="result-label">Totale ritafstand</div>
+                  <div class="result-value" id="totalDistanceResult">--</div>
+                  <div class="result-note">Heen en terug volgens je gekozen afstandstype.</div>
+                </div>
+              </div>
+
+              <div class="col-sm-6">
+                <div class="result-tile">
+                  <div class="result-label">Ritkosten</div>
+                  <div class="result-value" id="tripCostResult">--</div>
+                  <div class="result-note">Brandstofkosten van de rit naar België.</div>
+                </div>
+              </div>
+
+              <div class="col-sm-6">
+                <div class="result-tile">
+                  <div class="result-label">Bruto besparing</div>
+                  <div class="result-value" id="grossSavingsResult">--</div>
+                  <div class="result-note">Prijsvoordeel aan de pomp zonder ritkosten.</div>
+                </div>
+              </div>
+
+              <div class="col-sm-6">
+                <div class="result-tile">
+                  <div class="result-label">Netto resultaat</div>
+                  <div class="result-value" id="netSavingsResult">--</div>
+                  <div class="result-note">Bruto besparing minus ritkosten.</div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="result-tile">
+                  <div class="result-label">Break-even afstand</div>
+                  <div class="result-value" id="breakEvenResult">--</div>
+                  <div class="result-note" id="breakEvenNote">
+                    De maximale afstand waarbij de rit precies quitte speelt.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="conclusionAlert" class="d-none mt-4 mb-0" data-base-class="mt-4 mb-0" role="alert"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById("fuelForm");
+    const useApiPricesInput = document.getElementById("useApiPrices");
+    const fetchPricesBtn = document.getElementById("fetchPricesBtn");
+    const exampleBtn = document.getElementById("exampleBtn");
+    const formAlert = document.getElementById("formAlert");
+    const apiAlert = document.getElementById("apiAlert");
+    const conclusionAlert = document.getElementById("conclusionAlert");
+
+    const fields = {
+      nlPrice: document.getElementById("nlPrice"),
+      bePrice: document.getElementById("bePrice"),
+      consumption: document.getElementById("consumption"),
+      distance: document.getElementById("distance"),
+      tripType: document.getElementById("tripType"),
+      liters: document.getElementById("liters")
+    };
+
+    const resultFields = {
+      totalDistance: document.getElementById("totalDistanceResult"),
+      tripCost: document.getElementById("tripCostResult"),
+      grossSavings: document.getElementById("grossSavingsResult"),
+      netSavings: document.getElementById("netSavingsResult"),
+      breakEven: document.getElementById("breakEvenResult"),
+      breakEvenNote: document.getElementById("breakEvenNote")
+    };
+
+    const currencyFormatter = new Intl.NumberFormat("nl-NL", {
+      style: "currency",
+      currency: "EUR"
+    });
+
+    const decimalFormatter = new Intl.NumberFormat("nl-NL", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    function formatCurrency(value) {
+      return currencyFormatter.format(roundToTwo(value));
+    }
+
+    function formatDistance(value) {
+      return `${decimalFormatter.format(roundToTwo(value))} km`;
+    }
+
+    function roundToTwo(value) {
+      return Math.round((value + Number.EPSILON) * 100) / 100;
+    }
+
+    function showAlert(target, type, message) {
+      const baseClasses = (target.dataset.baseClass || "").split(" ").filter(Boolean);
+      target.className = [...baseClasses, "alert", `alert-${type}`].join(" ");
+      target.innerHTML = message;
+      target.classList.remove("d-none");
+    }
+
+    function hideAlert(target) {
+      const baseClasses = (target.dataset.baseClass || "").split(" ").filter(Boolean);
+      target.className = [...baseClasses, "d-none"].join(" ");
+      target.innerHTML = "";
+    }
+
+    function clearValidation() {
+      Object.values(fields).forEach((field) => {
+        if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement) {
+          field.classList.remove("is-invalid");
+        }
+      });
+      hideAlert(formAlert);
+    }
+
+    function setInvalid(field, message) {
+      field.classList.add("is-invalid");
+      showAlert(formAlert, "danger", message);
+    }
+
+    function getTripMultiplier(tripType) {
+      return tripType === "single" ? 2 : 1;
+    }
+
+    function calculateFuelTripCost(totalDistance, consumption, nlPrice) {
+      return (totalDistance / 100) * consumption * nlPrice;
+    }
+
+    function calculateGrossSavings(nlPrice, bePrice, liters) {
+      return (nlPrice - bePrice) * liters;
+    }
+
+    function calculateNetSavings(grossSavings, tripCost) {
+      return grossSavings - tripCost;
+    }
+
+    function calculateBreakEvenDistance(nlPrice, bePrice, liters, consumption, tripType) {
+      const priceDifference = nlPrice - bePrice;
+
+      if (priceDifference <= 0 || consumption <= 0 || nlPrice <= 0 || liters <= 0) {
+        return null;
+      }
+
+      const totalDistance = (priceDifference * liters * 100) / (consumption * nlPrice);
+      const inputDistance = totalDistance / getTripMultiplier(tripType);
+
+      return {
+        totalDistance,
+        inputDistance
+      };
+    }
+
+    function getValidatedInputs() {
+      clearValidation();
+
+      const nlPrice = Number.parseFloat(fields.nlPrice.value);
+      const bePrice = Number.parseFloat(fields.bePrice.value);
+      const consumption = Number.parseFloat(fields.consumption.value);
+      const distance = Number.parseFloat(fields.distance.value);
+      const liters = Number.parseFloat(fields.liters.value);
+      const tripType = fields.tripType.value;
+
+      if (Number.isNaN(nlPrice) || nlPrice <= 0) {
+        setInvalid(fields.nlPrice, "De Nederlandse benzineprijs moet groter zijn dan 0.");
+        return null;
+      }
+
+      if (Number.isNaN(bePrice) || bePrice <= 0) {
+        setInvalid(fields.bePrice, "De Belgische benzineprijs moet groter zijn dan 0.");
+        return null;
+      }
+
+      if (Number.isNaN(consumption) || consumption <= 0) {
+        setInvalid(fields.consumption, "Het verbruik moet groter zijn dan 0.");
+        return null;
+      }
+
+      if (Number.isNaN(distance) || distance < 0) {
+        setInvalid(fields.distance, "De afstand mag niet negatief zijn.");
+        return null;
+      }
+
+      if (Number.isNaN(liters) || liters <= 0) {
+        setInvalid(fields.liters, "Het aantal liters moet groter zijn dan 0.");
+        return null;
+      }
+
+      return {
+        nlPrice,
+        bePrice,
+        consumption,
+        distance,
+        tripType,
+        liters
+      };
+    }
+
+    function renderResults(results) {
+      resultFields.totalDistance.textContent = formatDistance(results.totalDistance);
+      resultFields.tripCost.textContent = formatCurrency(results.tripCost);
+      resultFields.grossSavings.textContent = formatCurrency(results.grossSavings);
+      resultFields.netSavings.textContent = formatCurrency(results.netSavings);
+
+      if (results.breakEven) {
+        const tripTypeLabel = results.tripType === "single" ? "enkele reis" : "retour";
+        resultFields.breakEven.textContent = formatDistance(results.breakEven.inputDistance);
+        resultFields.breakEvenNote.textContent =
+          `Ingevoerde afstand bij afstandstype "${tripTypeLabel}". Totale rit: ${formatDistance(results.breakEven.totalDistance)}.`;
+      } else {
+        resultFields.breakEven.textContent = "Niet haalbaar";
+        resultFields.breakEvenNote.textContent =
+          "Er is geen break-even afstand, omdat de Belgische prijs niet lager is dan de Nederlandse prijs.";
+      }
+
+      if (results.netSavings > 0) {
+        showAlert(
+          conclusionAlert,
+          "success",
+          `<strong>Tanken in België loont</strong><br>Je bespaart netto ${formatCurrency(results.netSavings)} op deze rit.`
+        );
+      } else {
+        showAlert(
+          conclusionAlert,
+          "danger",
+          `<strong>Tanken in België loont niet</strong><br>Je resultaat komt uit op ${formatCurrency(results.netSavings)} netto.`
+        );
+      }
+    }
+
+    function fillExampleValues() {
+      fields.nlPrice.value = "2.15";
+      fields.bePrice.value = "1.68";
+      fields.consumption.value = "6.0";
+      fields.distance.value = "45";
+      fields.tripType.value = "single";
+      fields.liters.value = "35";
+      hideAlert(formAlert);
+      hideAlert(apiAlert);
+    }
+
+    async function tryJsonEndpoint(url, parser) {
+      const response = await fetch(url, {
+        headers: {
+          "Accept": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      return parser(data);
+    }
+
+    async function tryHtmlSource(url, countryLabel) {
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const html = await response.text();
+      const match = html.match(new RegExp(`price of Euro 95 petrol in ${countryLabel} is €([0-9.]+) per liter`, "i"));
+
+      if (!match) {
+        throw new Error(`Geen prijs gevonden voor ${countryLabel}`);
+      }
+
+      return Number.parseFloat(match[1]);
+    }
+
+    async function fetchFuelPrices() {
+      const apiCandidates = [
+        {
+          url: "https://www.fuel-prices.eu/api/fuel-prices?countries=NL,BE&fuel=euro95",
+          parser(data) {
+            return {
+              nlPrice: Number.parseFloat(data?.NL?.euro95),
+              bePrice: Number.parseFloat(data?.BE?.euro95),
+              source: "publieke API"
+            };
+          }
+        },
+        {
+          url: "https://www.fuel-prices.eu/api/latest?countries=NL,BE&format=json",
+          parser(data) {
+            const items = Array.isArray(data?.countries) ? data.countries : [];
+            const nlItem = items.find((item) => item.country === "NL");
+            const beItem = items.find((item) => item.country === "BE");
+
+            return {
+              nlPrice: Number.parseFloat(nlItem?.euro95),
+              bePrice: Number.parseFloat(beItem?.euro95),
+              source: "publieke API"
+            };
+          }
+        }
+      ];
+
+      for (const candidate of apiCandidates) {
+        try {
+          const prices = await tryJsonEndpoint(candidate.url, candidate.parser);
+          if (Number.isFinite(prices.nlPrice) && Number.isFinite(prices.bePrice)) {
+            return prices;
+          }
+        } catch (error) {
+          // Volgende bron proberen.
+        }
+      }
+
+      try {
+        const [nlPrice, bePrice] = await Promise.all([
+          tryHtmlSource("https://www.fuel-prices.eu/Netherlands/", "Netherlands"),
+          tryHtmlSource("https://www.fuel-prices.eu/Belgium/", "Belgium")
+        ]);
+
+        if (Number.isFinite(nlPrice) && Number.isFinite(bePrice)) {
+          return {
+            nlPrice,
+            bePrice,
+            source: "publieke bron"
+          };
+        }
+      } catch (error) {
+        // Hieronder volgt de expliciete fallback voor CORS of ontbrekende endpoints.
+      }
+
+      throw new Error(
+        "Actuele prijzen konden niet automatisch worden opgehaald. Veel publieke brandstofbronnen hebben geen vrije browser-API of blokkeren CORS-verzoeken. Handmatige invoer blijft beschikbaar."
+      );
+    }
+
+    function handleCalculation(event) {
+      event.preventDefault();
+
+      const values = getValidatedInputs();
+      if (!values) {
+        return;
+      }
+
+      const totalDistance = values.distance * getTripMultiplier(values.tripType);
+      const tripCost = calculateFuelTripCost(totalDistance, values.consumption, values.nlPrice);
+      const grossSavings = calculateGrossSavings(values.nlPrice, values.bePrice, values.liters);
+      const netSavings = calculateNetSavings(grossSavings, tripCost);
+      const breakEven = calculateBreakEvenDistance(
+        values.nlPrice,
+        values.bePrice,
+        values.liters,
+        values.consumption,
+        values.tripType
+      );
+
+      renderResults({
+        totalDistance,
+        tripCost,
+        grossSavings,
+        netSavings,
+        breakEven,
+        tripType: values.tripType
+      });
+    }
+
+    useApiPricesInput.addEventListener("change", () => {
+      fetchPricesBtn.disabled = !useApiPricesInput.checked;
+      if (!useApiPricesInput.checked) {
+        hideAlert(apiAlert);
+      }
+    });
+
+    fetchPricesBtn.addEventListener("click", async () => {
+      hideAlert(apiAlert);
+      fetchPricesBtn.disabled = true;
+      fetchPricesBtn.textContent = "Bezig met ophalen...";
+
+      try {
+        const prices = await fetchFuelPrices();
+        fields.nlPrice.value = roundToTwo(prices.nlPrice).toFixed(2);
+        fields.bePrice.value = roundToTwo(prices.bePrice).toFixed(2);
+        showAlert(
+          apiAlert,
+          "success",
+          `Actuele prijzen geladen via ${prices.source}: Nederland ${formatCurrency(prices.nlPrice)} en België ${formatCurrency(prices.bePrice)}.`
+        );
+      } catch (error) {
+        showAlert(apiAlert, "warning", error.message);
+      } finally {
+        fetchPricesBtn.disabled = !useApiPricesInput.checked;
+        fetchPricesBtn.textContent = "Haal actuele prijzen op";
+      }
+    });
+
+    exampleBtn.addEventListener("click", fillExampleValues);
+    form.addEventListener("submit", handleCalculation);
+  </script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"
+  ></script>
+</body>
+</html>
